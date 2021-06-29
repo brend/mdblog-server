@@ -48,7 +48,7 @@ app.get(`${API}/post`, (req, res) => {
     res.send(JSON.stringify(posts));
 });
 
-app.get(`${API}/:id`, (req, res) => {
+app.get(`${API}/post/:id`, (req, res) => {
     const path = postPath(req.params.id);
 
     // TODO: sanitize/reject res, if contains "/" etc
@@ -61,8 +61,8 @@ app.get(`${API}/:id`, (req, res) => {
                 }
 
                 // check if file not too large etc
-                res.setHeader('content-type', 'text/plain');
-                res.send(data);
+                res.setHeader('content-type', 'application/json');
+                res.send({id: req.params.id, text: data});
             });
         } else {
             res.status(404).send('post not found');
@@ -73,7 +73,7 @@ app.get(`${API}/:id`, (req, res) => {
     }
 });
 
-app.post(`${API}/:id`, (req, res) => {
+app.post(`${API}/post/:id`, (req, res) => {
 
     if (!req.body) {
         console.error('request body missing');
@@ -86,8 +86,6 @@ app.post(`${API}/:id`, (req, res) => {
     // TODO: check if valid file name etc
     // TODO: check if body (file data) is ok, not too large, harmless, what have you
     try {
-        console.log(req.body);
-
         fs.writeFile(path, JSON.stringify(req.body), () => {
             res.status(200).send('post saved');
         })
