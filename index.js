@@ -42,7 +42,9 @@ app
 /////////// API ///////////
 
 app.get(`${API}/post`, (req, res) => {
-    const posts = fs.readdirSync(POSTS).map(filename => { return {id: filename, title: filename} });
+    const posts = fs.readdirSync(POSTS)
+        .filter(filename => filename.endsWith('.md'))
+        .map(filename => { return {id: filename, title: filename} });
 
     res.setHeader('content-type', 'application/json');
     res.send(JSON.stringify(posts));
