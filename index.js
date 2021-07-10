@@ -89,6 +89,12 @@ app.post(`${API}/post/:id`, (req, res) => {
     // TODO: check if valid file name etc
     // TODO: check if body (file data) is ok, not too large, harmless, what have you
     try {
+        if (fs.existsSync(postPath)) {
+            console.error('post already exists', postPath);
+            res.status(404).send('post already exists');
+            return;
+        }
+
         fs.writeFile(path, JSON.stringify(req.body), () => {
             res.status(200).send('post created');
         })
