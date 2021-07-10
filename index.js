@@ -13,14 +13,34 @@ const express = require('express');
 
 const fs = require('fs');
 
-const {titleify} = require('./titleify.js');
+const {titleify, filenameify} = require('./titleify.js');
 
 var app = express();
 
 /////////// global header, MUST come first ///////////
 
-app.get('/*',function(req,res,next){
-    res.header('Access-Control-Allow-Origin' , 'http://localhost:4200');
+// app.get('/*',function(req,res,next){
+//     res.header('Access-Control-Allow-Origin' , 'http://localhost:4200');
+//     next();
+// });
+
+// Add headers
+app.use(function (req, res, next) {
+
+    // Website you wish to allow to connect
+    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:4200');
+
+    // Request methods you wish to allow
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+
+    // Request headers you wish to allow
+    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
+
+    // Set to true if you need the website to include cookies in the requests sent
+    // to the API (e.g. in case you use sessions)
+    res.setHeader('Access-Control-Allow-Credentials', true);
+
+    // Pass to next layer of middleware
     next();
 });
 
@@ -77,25 +97,26 @@ app.get(`${API}/post/:id`, (req, res) => {
     }
 });
 
-app.post(`${API}/post/:id`, (req, res) => {
+app.post(`${API}/post`, (req, res) => {
     if (!req.body) {
         console.error('request body missing');
         res.status(400).send('bad request');
         return;
     }
 
-    const path = postPath(req.params.id);
+    const postId = filenameify(req.body.title);
+    const path = postPath(postId);
 
     // TODO: check if valid file name etc
     // TODO: check if body (file data) is ok, not too large, harmless, what have you
     try {
-        if (fs.existsSync(postPath)) {
-            console.error('post already exists', postPath);
+        if (fs.existsSync(path)) {
+            console.error('post already exists', path);
             res.status(404).send('post already exists');
             return;
         }
 
-        fs.writeFile(path, JSON.stringify(req.body), () => {
+        fs.writeFile(path, req.body.contents, () => {
             res.status(200).send('post created');
         })
     } catch (err) {
