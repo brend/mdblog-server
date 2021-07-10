@@ -13,6 +13,8 @@ const express = require('express');
 
 const fs = require('fs');
 
+const {titleify} = require('./titleify.js');
+
 var app = express();
 
 /////////// global header, MUST come first ///////////
@@ -44,7 +46,7 @@ app
 app.get(`${API}/post`, (req, res) => {
     const posts = fs.readdirSync(POSTS)
         .filter(filename => filename.endsWith('.md'))
-        .map(filename => { return {id: filename, title: filename} });
+        .map(filename => { return {id: filename, title: titleify(filename)} });
 
     res.setHeader('content-type', 'application/json');
     res.send(JSON.stringify(posts));
@@ -76,7 +78,6 @@ app.get(`${API}/post/:id`, (req, res) => {
 });
 
 app.post(`${API}/post/:id`, (req, res) => {
-
     if (!req.body) {
         console.error('request body missing');
         res.status(400).send('bad request');
@@ -89,7 +90,32 @@ app.post(`${API}/post/:id`, (req, res) => {
     // TODO: check if body (file data) is ok, not too large, harmless, what have you
     try {
         fs.writeFile(path, JSON.stringify(req.body), () => {
-            res.status(200).send('post saved');
+            res.status(200).send('post created');
+        })
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('server error');
+    }
+});
+
+app.patch(`${API}/post/:id`, (req, res) => {
+    if (!req.body) {
+        console.error('request body missing');
+        res.status(400).send('bad request');
+        return;
+    }
+
+    const path = postPath(req.params.id);
+
+    if (!fs.existsSync(path)) {
+        console.err('post not found', path);
+        res.status(404).send('post not found');
+        return;
+    }
+
+    try {
+        fs.writeFile(path, JSON.stringify(req.body), () => {
+            res.status(200).send('post updated');
         })
     } catch (err) {
         console.error(err);
