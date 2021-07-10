@@ -117,7 +117,7 @@ app.post(`${API}/post`, (req, res) => {
         }
 
         fs.writeFile(path, req.body.contents, () => {
-            res.status(200).send('post created');
+            res.status(200).send('{"message": "post created","success":true}');
         })
     } catch (err) {
         console.error(err);
