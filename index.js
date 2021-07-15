@@ -12,10 +12,19 @@ const compression = require('compression');
 const express = require('express');
 
 const fs = require('fs');
+const { stringify } = require('querystring');
 
 const {titleify, filenameify} = require('./titleify.js');
 
 var app = express();
+
+function success(message, postId) {
+    return {success: true, message: message, postId: postId};
+}
+
+function failure(message) {
+    return {success: false, message: message};
+}
 
 /////////// global header, MUST come first ///////////
 
@@ -81,7 +90,7 @@ app.get(`${API}/post/:id`, (req, res) => {
             fs.readFile(path, 'utf8', (err, data) => {
                 if (err) {
                     console.error(err);
-                    res.status(500).send('server error');
+                    res.status(500).send(failure('server error'));
                 }
 
                 // check if file not too large etc
@@ -89,18 +98,18 @@ app.get(`${API}/post/:id`, (req, res) => {
                 res.send({id: req.params.id, text: data});
             });
         } else {
-            res.status(404).send('post not found');
+            res.status(404).send(failure('post not found'));
         }
     } catch (err) {
         console.error(err);
-        res.status(500).send('server error');
+        res.status(500).send(failure('server error'));
     }
 });
 
 app.post(`${API}/post`, (req, res) => {
     if (!req.body) {
         console.error('request body missing');
-        res.status(400).send('bad request');
+        res.status(400).send(failure('bad request'));
         return;
     }
 
@@ -112,23 +121,23 @@ app.post(`${API}/post`, (req, res) => {
     try {
         if (fs.existsSync(path)) {
             console.error('post already exists', path);
-            res.status(404).send('post already exists');
+            res.status(404).send(failure('post already exists'));
             return;
         }
 
         fs.writeFile(path, req.body.contents, () => {
-            res.status(200).send('{"message": "post created","success":true}');
+            res.status(200).send(postId);
         })
     } catch (err) {
         console.error(err);
-        res.status(500).send('server error');
+        res.status(500).send(failure('server error'));
     }
 });
 
 app.patch(`${API}/post/:id`, (req, res) => {
     if (!req.body) {
         console.error('request body missing');
-        res.status(400).send('bad request');
+        res.status(400).send(failure('bad request'));
         return;
     }
 
@@ -136,16 +145,16 @@ app.patch(`${API}/post/:id`, (req, res) => {
 
     if (!fs.existsSync(path)) {
         console.err('post not found', path);
-        res.status(404).send('post not found');
+        res.status(404).send(failure('post not found'));
         return;
     }
 
     try {
         fs.writeFile(path, JSON.stringify(req.body), () => {
-            res.status(200).send('post updated');
+            res.status(200).send(success('post updated'));
         })
     } catch (err) {
         console.error(err);
-        res.status(500).send('server error');
+        res.status(500).send(failure('server error'));
     }
 });
