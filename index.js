@@ -12,7 +12,6 @@ const compression = require('compression');
 const express = require('express');
 
 const fs = require('fs');
-const { stringify } = require('querystring');
 
 const {titleify, filenameify} = require('./titleify.js');
 
@@ -28,12 +27,6 @@ function failure(message) {
 
 /////////// global header, MUST come first ///////////
 
-// app.get('/*',function(req,res,next){
-//     res.header('Access-Control-Allow-Origin' , 'http://localhost:4200');
-//     next();
-// });
-
-// Add headers
 app.use(function (req, res, next) {
 
     // Website you wish to allow to connect
@@ -82,7 +75,8 @@ app.get(`${API}/post`, (req, res) => {
 });
 
 app.get(`${API}/post/:id`, (req, res) => {
-    const path = postPath(req.params.id);
+    const postId = req.params.id;
+    const path = postPath(postId);
 
     // TODO: sanitize/reject res, if contains "/" etc
     try {
@@ -91,11 +85,14 @@ app.get(`${API}/post/:id`, (req, res) => {
                 if (err) {
                     console.error(err);
                     res.status(500).send(failure('server error'));
+                    return;
                 }
+
+                const title = titleify(postId);
 
                 // check if file not too large etc
                 res.setHeader('content-type', 'application/json');
-                res.send({id: req.params.id, text: data});
+                res.send({id: postId, title: title, text: data});
             });
         } else {
             res.status(404).send(failure('post not found'));
