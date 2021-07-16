@@ -137,6 +137,8 @@ app.patch(`${API}/post/:id`, (req, res) => {
         res.status(400).send(failure('bad request'));
         return;
     }
+
+    console.log('body', req.body);
     
     const postId = req.params.id;
     const path = postPath(postId);
@@ -167,8 +169,9 @@ app.patch(`${API}/post/:id`, (req, res) => {
         }
     }
 
+    // replace file contents
     try {
-        fs.writeFile(newPath, JSON.stringify(req.body.contents), () => {
+        fs.writeFile(newPath, req.body.contents, () => {
             res.status(200).send(newPostId);
         })
     } catch (error) {
