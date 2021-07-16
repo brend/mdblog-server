@@ -137,21 +137,42 @@ app.patch(`${API}/post/:id`, (req, res) => {
         res.status(400).send(failure('bad request'));
         return;
     }
-
-    const path = postPath(req.params.id);
+    
+    const postId = req.params.id;
+    const path = postPath(postId);
+    const newPostId = filenameify(req.body.title);
+    const newPath = postPath(newPostId);
 
     if (!fs.existsSync(path)) {
-        console.err('post not found', path);
+        console.error('post not found', path);
         res.status(404).send(failure('post not found'));
         return;
     }
 
+    if (path != newPath) {
+        // make sure file can be safely renamed
+        if (fs.existsSync(newPath)) {
+            console.error('a post with the requested title already exists', newPath);
+            res.status(404).send('a post with the requested title already exists');
+            return;
+        }
+
+        // try to rename file
+        try {
+            fs.renameSync(path, newPath);
+        } catch (error) {
+            console.error('renaming the post failed', error);
+            res.status(500).send('renaming the post failed');
+            return;
+        }
+    }
+
     try {
-        fs.writeFile(path, JSON.stringify(req.body), () => {
-            res.status(200).send(success('post updated'));
+        fs.writeFile(newPath, JSON.stringify(req.body.contents), () => {
+            res.status(200).send(newPostId);
         })
-    } catch (err) {
-        console.error(err);
+    } catch (error) {
+        console.error(error);
         res.status(500).send(failure('server error'));
     }
 });
