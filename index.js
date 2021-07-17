@@ -14,6 +14,7 @@ const express = require('express');
 const fs = require('fs');
 
 const {titleify, filenameify} = require('./titleify.js');
+const {filenameIsValid} = require('./validation.js');
 
 var app = express();
 
@@ -113,8 +114,11 @@ app.post(`${API}/post`, (req, res) => {
     const postId = filenameify(req.body.title);
     const path = postPath(postId);
 
-    // TODO: check if valid file name etc
-    // TODO: check if body (file data) is ok, not too large, harmless, what have you
+    if (!filenameIsValid(postId)) {
+        res.status(400).send(failure('invalid title'));
+        return;
+    }
+
     try {
         if (fs.existsSync(path)) {
             console.error('post already exists', path);
