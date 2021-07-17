@@ -147,6 +147,11 @@ app.patch(`${API}/post/:id`, (req, res) => {
     const newPostId = filenameify(req.body.title);
     const newPath = postPath(newPostId);
 
+    if (!filenameIsValid(newPostId)) {
+        res.status(400).send(failure('invalid title'));
+        return;
+    }
+
     if (!fs.existsSync(path)) {
         console.error('post not found', path);
         res.status(404).send(failure('post not found'));
