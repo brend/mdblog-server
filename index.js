@@ -137,8 +137,6 @@ app.patch(`${API}/post/:id`, (req, res) => {
         res.status(400).send(failure('bad request'));
         return;
     }
-
-    console.log('body', req.body);
     
     const postId = req.params.id;
     const path = postPath(postId);
