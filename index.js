@@ -69,7 +69,16 @@ app
 app.get(`${API}/post`, (req, res) => {
     const posts = fs.readdirSync(POSTS)
         .filter(filename => filename.endsWith('.md'))
-        .map(filename => { return {id: filename, title: titleify(filename)} });
+        .map(filename => { 
+            const stat = fs.statSync(`${POSTS}/${filename}`);
+
+            return {
+                id: filename, 
+                title: titleify(filename),
+                created: stat.birthtime,
+                changed: stat.ctime,
+            } 
+        });
 
     res.setHeader('content-type', 'application/json');
     res.send(JSON.stringify(posts));
@@ -90,10 +99,17 @@ app.get(`${API}/post/:id`, (req, res) => {
                 }
 
                 const title = titleify(postId);
+                const stat = fs.statSync(path);
 
                 // check if file not too large etc
                 res.setHeader('content-type', 'application/json');
-                res.send({id: postId, title: title, text: data});
+                res.send({
+                    id: postId, 
+                    title: title,
+                    text: data,
+                    created: stat.birthtime,
+                    changed: stat.ctime,
+                });
             });
         } else {
             res.status(404).send(failure('post not found'));
