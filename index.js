@@ -1,5 +1,5 @@
 const HTTP_PUBLIC = '../MdBlog/dist/MdBlog/';
-const API = '/api/v1'
+const API = '*/api/v1'
 const POSTS = '../posts';
 const port = 8080;
 
